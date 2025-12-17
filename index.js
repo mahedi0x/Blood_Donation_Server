@@ -57,6 +57,24 @@ async function run() {
     const paymentsCollection = db.collection("payments");
 
 
+    //================== users related apis =======================
+    app.get("/users", async (req, res) => {
+      const role = req.query.role;
+      const query = { role: role };
+      const result = await usersCollection.find(query).toArray();
+      res.send(result);
+    });
+
+    app.get("/users-profile", async (req, res) => {
+      const email = req.query.email;
+      const query = {};
+      if (email) {
+        query.email = email;
+      }
+
+      const result = await usersCollection.findOne(query);
+      res.send(result);
+    });
 
     app.post("/users", async (req, res) => {
       const user = req.body;
