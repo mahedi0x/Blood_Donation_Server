@@ -7,9 +7,12 @@ const port = process.env.PORT || 3000;
 
 var admin = require("firebase-admin");
 
+var serviceAccount = require("./blood-donation-test-53338-firebase-adminsdk-fbsvc-c38d8ff0ac.json");
+
 admin.initializeApp({
   credential: admin.credential.cert(serviceAccount),
 });
+////////////////////////////////
 
 //middleware
 app.use(express.json());
@@ -76,6 +79,41 @@ async function run() {
       res.send(result);
     });
 
+
+    app.get("/users/:email/role", async (req, res) => {
+      const email = req.params.email;
+      const query = { email };
+      const user = await usersCollection.findOne(query);
+      res.send({ role: user?.role || "donor" }); //API থেকে জাস্ট role যাচ্ছে (based on email)
+    });
+
+    //admin এর জন্য
+    app.get("/all-users", async (req, res) => {
+      const result = await usersCollection.find().toArray();
+      res.send(result);
+    });
+
+
+        //search এর জন্য get
+        app.get("/search-donors", async (req, res) => {
+          const { bloodGroup, district, upazila, role } = req.query;
+    
+          const query2 = { role: role };
+          const isDonor = await usersCollection.findOne(query2);
+          if (!isDonor) {
+            return res.status(406).send({ message: "This Search not for Donor" });
+          }
+    
+          const query = {};
+          if (bloodGroup) query.bloodGroup = bloodGroup;
+          if (district) query.district = district;
+          if (upazila) query.upazila = upazila;
+    
+          const result = await usersCollection.find(query).toArray();
+          res.send(result);
+        });
+        
+
     app.post("/users", async (req, res) => {
       const user = req.body;
       user.role = "donor";
@@ -89,6 +127,8 @@ async function run() {
       const result = await usersCollection.insertOne(user);
       res.send(result);
     });
+
+    
 
     // Send a ping to confirm a successful connection
     // await client.db("admin").command({ ping: 1 });
