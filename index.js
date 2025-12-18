@@ -112,7 +112,7 @@ async function run() {
           const result = await usersCollection.find(query).toArray();
           res.send(result);
         });
-        
+
 
     app.post("/users", async (req, res) => {
       const user = req.body;
@@ -128,7 +128,23 @@ async function run() {
       res.send(result);
     });
 
-    
+      app.patch("/user-profile/:id", verifyFBToken, async (req, res) => {
+      const { displayName, bloodGroup } = req.body;
+
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+
+      const updateDonor = {
+        $set: {
+          displayName: displayName,
+          bloodGroup: bloodGroup,
+          district: req.body.district,
+          upazila: req.body.upazila,
+        },
+      };
+      const result = await usersCollection.updateOne(query, updateDonor);
+      res.send(result);
+    });
 
     // Send a ping to confirm a successful connection
     // await client.db("admin").command({ ping: 1 });
