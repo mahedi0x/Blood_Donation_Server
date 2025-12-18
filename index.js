@@ -41,7 +41,6 @@ app.get("/", (req, res) => {
 
 const uri = process.env.URI;
 
-
 const client = new MongoClient(uri, {
   serverApi: {
     version: ServerApiVersion.v1,
@@ -79,6 +78,14 @@ async function run() {
       res.send(result);
     });
 
+
+    app.get("/users/:email/role", async (req, res) => {
+      const email = req.params.email;
+      const query = { email };
+      const user = await usersCollection.findOne(query);
+      res.send({ role: user?.role || "donor" }); //API থেকে জাস্ট role যাচ্ছে (based on email)
+    });
+    
 
     app.get("/users/:email/role", async (req, res) => {
       const email = req.params.email;
