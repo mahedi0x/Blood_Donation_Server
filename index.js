@@ -146,6 +146,49 @@ async function run() {
       res.send(result);
     });
 
+        //pending based all data
+        app.get("/donation-requests", async (req, res) => {
+          const status = req.query.status;
+          const query = { donationStatus: status };
+          const result = await donationRequestsCollection.find(query).toArray();
+          res.send(result);
+        });
+    
+        app.post("/donation-requests", verifyFBToken, async (req, res) => {
+          const isStatus = req.query.status;
+          const query = { status: isStatus };
+          const activeUser = await usersCollection.findOne(query);
+          if (!activeUser) {
+            return res
+              .status(406)
+              .send({ message: "User is not about to make Request" });
+          }
+          ///////////////
+          const donationRequest = req.body;
+          donationRequest.createdAt = new Date();
+          const result = await donationRequestsCollection.insertOne(
+            donationRequest
+          );
+          res.send(result);
+        });
+    
+        app.patch("/donation-requests/:id", verifyFBToken, async (req, res) => {
+          const { donationStatus } = req.body;
+    
+          const id = req.params.id;
+          const query = { _id: new ObjectId(id) };
+          const updateStatus = {
+            $set: {
+              donationStatus: donationStatus,
+            },
+          };
+          const result = await donationRequestsCollection.updateOne(
+            query,
+            updateStatus
+          );
+          res.send(result);
+        });
+
     // Send a ping to confirm a successful connection
     // await client.db("admin").command({ ping: 1 });
     console.log(
