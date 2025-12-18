@@ -189,6 +189,48 @@ async function run() {
           res.send(result);
         });
 
+
+          //edit-donation-req total data(এর জন্য)
+    app.patch(
+      "/update-donation-request/:id",
+      verifyFBToken,
+      async (req, res) => {
+        const {
+          recipientName,
+          recipientDistrict,
+          recipientUpazila,
+          hospitalName,
+          fullAddress,
+          donationStatus,
+        } = req.body;
+
+        const id = req.params.id;
+        const query = { _id: new ObjectId(id) };
+        const updateWholeData = {
+          $set: {
+            recipientName,
+            recipientDistrict,
+            recipientUpazila,
+            hospitalName,
+            fullAddress,
+            donationStatus,
+          },
+        };
+        const result = await donationRequestsCollection.updateOne(
+          query,
+          updateWholeData
+        );
+        res.send(result);
+      }
+    );
+
+    app.delete("/donation-requests/:id", verifyFBToken, async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await donationRequestsCollection.deleteOne(query);
+      res.send(result);
+    });
+
     // Send a ping to confirm a successful connection
     // await client.db("admin").command({ ping: 1 });
     console.log(
