@@ -142,6 +142,19 @@ async function run() {
       res.send(result);
     });
 
+
+    app.patch("/user-status/:id", verifyFBToken, async (req, res) => {
+      const { status } = req.body;
+
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const updatedStatus = {
+        $set: { status: status },
+      };
+      const result = await usersCollection.updateOne(query, updatedStatus);
+      res.send(result);
+    });
+    
     //pending based all data
     app.get("/donation-requests", async (req, res) => {
       const status = req.query.status;
