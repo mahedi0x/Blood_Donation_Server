@@ -58,7 +58,6 @@ async function run() {
     const donationRequestsCollection = db.collection("donationRequests");
     const paymentsCollection = db.collection("payments");
 
-
     //================== users related apis =======================
     app.get("/users", async (req, res) => {
       const role = req.query.role;
@@ -78,15 +77,6 @@ async function run() {
       res.send(result);
     });
 
-
-    app.get("/users/:email/role", async (req, res) => {
-      const email = req.params.email;
-      const query = { email };
-      const user = await usersCollection.findOne(query);
-      res.send({ role: user?.role || "donor" }); //API থেকে জাস্ট role যাচ্ছে (based on email)
-    });
-
-
     app.get("/users/:email/role", async (req, res) => {
       const email = req.params.email;
       const query = { email };
@@ -99,27 +89,26 @@ async function run() {
       const result = await usersCollection.find().toArray();
       res.send(result);
     });
-
-
-        //search এর জন্য get
-        app.get("/search-donors", async (req, res) => {
-          const { bloodGroup, district, upazila, role } = req.query;
     
-          const query2 = { role: role };
-          const isDonor = await usersCollection.findOne(query2);
-          if (!isDonor) {
-            return res.status(406).send({ message: "This Search not for Donor" });
-          }
-    
-          const query = {};
-          if (bloodGroup) query.bloodGroup = bloodGroup;
-          if (district) query.district = district;
-          if (upazila) query.upazila = upazila;
-    
-          const result = await usersCollection.find(query).toArray();
-          res.send(result);
-        });
 
+    //search এর জন্য get
+    app.get("/search-donors", async (req, res) => {
+      const { bloodGroup, district, upazila, role } = req.query;
+
+      const query2 = { role: role };
+      const isDonor = await usersCollection.findOne(query2);
+      if (!isDonor) {
+        return res.status(406).send({ message: "This Search not for Donor" });
+      }
+
+      const query = {};
+      if (bloodGroup) query.bloodGroup = bloodGroup;
+      if (district) query.district = district;
+      if (upazila) query.upazila = upazila;
+
+      const result = await usersCollection.find(query).toArray();
+      res.send(result);
+    });
 
     app.post("/users", async (req, res) => {
       const user = req.body;
@@ -135,7 +124,7 @@ async function run() {
       res.send(result);
     });
 
-      app.patch("/user-profile/:id", verifyFBToken, async (req, res) => {
+    app.patch("/user-profile/:id", verifyFBToken, async (req, res) => {
       const { displayName, bloodGroup } = req.body;
 
       const id = req.params.id;
@@ -153,51 +142,50 @@ async function run() {
       res.send(result);
     });
 
-        //pending based all data
-        app.get("/donation-requests", async (req, res) => {
-          const status = req.query.status;
-          const query = { donationStatus: status };
-          const result = await donationRequestsCollection.find(query).toArray();
-          res.send(result);
-        });
-    
-        app.post("/donation-requests", verifyFBToken, async (req, res) => {
-          const isStatus = req.query.status;
-          const query = { status: isStatus };
-          const activeUser = await usersCollection.findOne(query);
-          if (!activeUser) {
-            return res
-              .status(406)
-              .send({ message: "User is not about to make Request" });
-          }
-          ///////////////
-          const donationRequest = req.body;
-          donationRequest.createdAt = new Date();
-          const result = await donationRequestsCollection.insertOne(
-            donationRequest
-          );
-          res.send(result);
-        });
-    
-        app.patch("/donation-requests/:id", verifyFBToken, async (req, res) => {
-          const { donationStatus } = req.body;
-    
-          const id = req.params.id;
-          const query = { _id: new ObjectId(id) };
-          const updateStatus = {
-            $set: {
-              donationStatus: donationStatus,
-            },
-          };
-          const result = await donationRequestsCollection.updateOne(
-            query,
-            updateStatus
-          );
-          res.send(result);
-        });
+    //pending based all data
+    app.get("/donation-requests", async (req, res) => {
+      const status = req.query.status;
+      const query = { donationStatus: status };
+      const result = await donationRequestsCollection.find(query).toArray();
+      res.send(result);
+    });
 
+    app.post("/donation-requests", verifyFBToken, async (req, res) => {
+      const isStatus = req.query.status;
+      const query = { status: isStatus };
+      const activeUser = await usersCollection.findOne(query);
+      if (!activeUser) {
+        return res
+          .status(406)
+          .send({ message: "User is not about to make Request" });
+      }
+      ///////////////
+      const donationRequest = req.body;
+      donationRequest.createdAt = new Date();
+      const result = await donationRequestsCollection.insertOne(
+        donationRequest
+      );
+      res.send(result);
+    });
 
-          //edit-donation-req total data(এর জন্য)
+    app.patch("/donation-requests/:id", verifyFBToken, async (req, res) => {
+      const { donationStatus } = req.body;
+
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const updateStatus = {
+        $set: {
+          donationStatus: donationStatus,
+        },
+      };
+      const result = await donationRequestsCollection.updateOne(
+        query,
+        updateStatus
+      );
+      res.send(result);
+    });
+
+    //edit-donation-req total data(এর জন্য)
     app.patch(
       "/update-donation-request/:id",
       verifyFBToken,
